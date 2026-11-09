@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Sky Full of Stars</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;300;500&display=swap">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Montserrat',sans-serif}
+:root{--cyan:#5ee7ff;--pink:#ff5fd2;--violet:#8a5cff;--gold:#ffe27a}
+body{overflow:hidden;width:100%;height:100vh;background:#05061a;
+  display:flex;justify-content:center;align-items:center}
+
+/* Nebulosa de fondo que se mueve lento */
+.nebula{position:absolute;inset:-20%;z-index:0;
+  background:
+    radial-gradient(ellipse at 20% 30%,rgba(138,92,255,.45),transparent 50%),
+    radial-gradient(ellipse at 80% 25%,rgba(255,95,210,.35),transparent 45%),
+    radial-gradient(ellipse at 60% 85%,rgba(94,231,255,.30),transparent 50%),
+    radial-gradient(ellipse at 50% 50%,#0b0d33,#05061a 70%);
+  animation:drift 40s ease-in-out infinite alternate}
+@keyframes drift{from{transform:rotate(0) scale(1)}to{transform:rotate(12deg) scale(1.15)}}
+#canvas{position:absolute;inset:0;width:100%;height:100%;z-index:1}
+
+.main{position:absolute;inset:0;z-index:10;display:flex;justify-content:center;align-items:center;
+  animation:aparece 2.2s ease-out}
+@keyframes aparece{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+
+.reproductor{display:flex;flex-direction:column;align-items:center;text-align:center;
+  width:min(92vw,440px);padding:38px 34px;background:rgba(12,14,50,.45);
+  backdrop-filter:blur(14px);border-radius:28px;
+  border:1px solid rgba(94,231,255,.3);
+  box-shadow:0 0 50px rgba(138,92,255,.35),inset 0 0 30px rgba(94,231,255,.07)}
+.etiqueta{color:var(--cyan);letter-spacing:.35em;text-transform:uppercase;font-size:.7em;font-weight:300;margin-bottom:28px}
+
+/* Orbe con la foto y anillo de colores */
+.orbe{position:relative;width:min(58vw,270px);height:min(58vw,270px);display:flex;justify-content:center;align-items:center}
+.anillo{position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(var(--cyan),var(--violet),var(--pink),var(--gold),var(--cyan));
+  filter:blur(10px);opacity:.75;animation:giro 8s linear infinite}
+.anillo::after{content:"";position:absolute;inset:8px;border-radius:50%;background:#0a0c2e}
+.orbe.pausado .anillo,.orbe.pausado .foto{animation-play-state:paused}
+.foto{position:relative;width:86%;height:86%;border-radius:50%;object-fit:cover;
+  border:3px solid rgba(255,255,255,.85);box-shadow:0 0 30px rgba(94,231,255,.5);
+  animation:giro 40s linear infinite}
+.orbe.pausado .foto{box-shadow:0 0 14px rgba(94,231,255,.25)}
+@keyframes giro{to{transform:rotate(360deg)}}
+/* Estrellita que orbita */
+.orbita{position:absolute;inset:-14px;animation:giro 10s linear infinite;pointer-events:none}
+.orbe.pausado .orbita{animation-play-state:paused}
+.orbita::before{content:"★";position:absolute;top:-6px;left:50%;transform:translateX(-50%);
+  color:var(--gold);font-size:22px;text-shadow:0 0 12px var(--gold),0 0 24px var(--gold)}
+
+.info{margin-top:36px}
+.info h1{color:#fff;font-weight:200;font-size:1.9em;letter-spacing:.06em;
+  text-shadow:0 0 14px rgba(94,231,255,.8),0 0 34px rgba(138,92,255,.7)}
+.info p{margin-top:8px;font-weight:300;font-size:1.05em;letter-spacing:.3em;text-transform:uppercase;
+  background:linear-gradient(90deg,var(--cyan),var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
+
+.control-btn{margin-top:28px;width:70px;height:70px;border-radius:50%;border:none;cursor:pointer;position:relative;
+  background:linear-gradient(135deg,var(--violet),var(--pink));
+  display:flex;justify-content:center;align-items:center;
+  box-shadow:0 0 22px rgba(255,95,210,.55);transition:transform .3s,box-shadow .3s}
+.control-btn:hover{transform:scale(1.08);box-shadow:0 0 34px rgba(94,231,255,.8)}
+.control-btn:active{transform:scale(.94)}
+.control-btn svg{position:absolute;transition:opacity .3s,transform .3s}
+.play-icon{opacity:0;transform:scale(1.5)}
+.pause-icon{opacity:1;transform:scale(1.5)}
+.control-btn.paused .play-icon{opacity:1;transform:scale(1.8)}
+.control-btn.paused .pause-icon{opacity:0;transform:scale(1.2)}
+</style>
+</head>
+<body>
+
+<!-- CAMBIA el nombre del archivo de audio por el tuyo -->
+<audio id="musicPlayer" loop>
+  <source src="a-sky-full-of-stars.mp3" type="audio/mp3">
+</audio>
+
+<div class="nebula"></div>
+<canvas id="canvas"></canvas>
+
+<div class="main">
+  <div class="reproductor">
+    <!-- Puedes cambiar este texto por una dedicatoria -->
+    <p class="etiqueta">Mi osita </p>
+    <div class="orbe pausado" id="orbe">
+      <div class="anillo"></div>
+      <!-- CAMBIA el nombre de la imagen por la tuya -->
+      <img class="foto" src="mi-imagen.jpg" alt="">
+      <div class="orbita"></div>
+    </div>
+    <div class="info">
+      <h1>A Sky Full of Stars</h1>
+      <p>Coldplay</p>
+    </div>
+    <button id="playPauseBtn" class="control-btn paused" aria-label="Reproducir / pausar">
+      <svg class="play-icon" width="20" height="20" viewBox="0 0 24 24"><path d="M8 5V19L19 12L8 5Z" fill="white"/></svg>
+      <svg class="pause-icon" width="20" height="20" viewBox="0 0 24 24"><path d="M6 4H10V20H6V4ZM14 4H18V20H14V4Z" fill="white"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+// ---------- Reproductor ----------
+const audio = document.getElementById('musicPlayer');
+const btn = document.getElementById('playPauseBtn');
+const orbe = document.getElementById('orbe');
+
+function setPlaying(on){
+  orbe.classList.toggle('pausado', !on);
+  btn.classList.toggle('paused', !on);
+}
+btn.addEventListener('click', () => {
+  if (audio.paused) { audio.play().then(() => setPlaying(true)).catch(()=>{}); }
+  else { audio.pause(); setPlaying(false); }
+});
+// Intenta autoplay; si el navegador lo bloquea, arranca con el primer clic en la página
+audio.play().then(() => setPlaying(true)).catch(() => {
+  document.addEventListener('click', function once(e){
+    if (e.target.closest('#playPauseBtn')) return;
+    audio.play().then(() => setPlaying(true)).catch(()=>{});
+    document.removeEventListener('click', once);
+  });
+});
+
+// ---------- Cielo: estrellas que titilan + estrellas fugaces ----------
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const palette = ['#ffffff','#bfe9ff','#ffd6f5','#fff3b0'];
+let stars = [], shooting = [];
+
+function initStars(){
+  const count = Math.floor(innerWidth * innerHeight / 5000);
+  stars = Array.from({length:count}, () => ({
+    x: Math.random()*canvas.width,
+    y: Math.random()*canvas.height,
+    r: Math.random()*1.6 + .3,
+    c: palette[Math.floor(Math.random()*palette.length)],
+    t: Math.random()*Math.PI*2,
+    v: .01 + Math.random()*.04
+  }));
+}
+function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; initStars(); }
+addEventListener('resize', resize);
+resize();
+
+function spawnShooting(){
+  shooting.push({
+    x: Math.random()*canvas.width*0.8 + canvas.width*0.2,
+    y: Math.random()*canvas.height*0.4,
+    vx: -(6 + Math.random()*5),
+    vy: 3 + Math.random()*3,
+    life: 1
+  });
+}
+setInterval(() => { if (Math.random() < .7) spawnShooting(); }, 2200);
+
+(function loop(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.shadowBlur = 0;
+  for (const s of stars){
+    s.t += s.v;
+    ctx.globalAlpha = .35 + .65*Math.abs(Math.sin(s.t));
+    ctx.fillStyle = s.c;
+    ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  shooting = shooting.filter(m => m.life > 0);
+  for (const m of shooting){
+    const tx = m.x - m.vx*9, ty = m.y - m.vy*9;
+    const g = ctx.createLinearGradient(m.x,m.y,tx,ty);
+    g.addColorStop(0,`rgba(255,255,255,${m.life})`);
+    g.addColorStop(1,'rgba(94,231,255,0)');
+    ctx.strokeStyle = g; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(m.x,m.y); ctx.lineTo(tx,ty); ctx.stroke();
+    m.x += m.vx; m.y += m.vy; m.life -= .012;
+  }
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
